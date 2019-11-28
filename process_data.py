@@ -171,14 +171,13 @@ def get_trigrams(puns):
     """
     tokenized_sents = []
     trigrams = []
-    stop_words = set(stopwords.words('english'))
 
     for punID, pun in puns.items():
         for wordID, word in pun.items():
             tokenized_sents.append(word_tokenize(" ".join(word.values())))
 
     for sentence in tokenized_sents:
-        sentence = [w.lower() for w in sentence if not w in stop_words]
         trigrams.append(list(ngrams(sentence, 3)))
 
     return trigrams
+
