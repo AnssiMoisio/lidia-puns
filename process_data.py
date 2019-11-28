@@ -169,10 +169,10 @@ def get_trigrams(puns):
     Separate the context into trigrams
     Return a list of tuples for each pun: [(word1, word2, word3), (word2, word3, word4)]
     """
-    trigrams = []
+    trigrams = {}
     for punID, pun in puns.items():
         tokenized_sents = list(pun.values())
-        trigrams.append(list(ngrams(tokenized_sents, 3)))
+        trigrams[punID] = list(ngrams(tokenized_sents, 3))
 
     return trigrams
 
