@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 import time
 import string
+from nltk import pos_tag
 from nltk.corpus import stopwords
 
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
@@ -57,12 +58,13 @@ def write_results(results, filename="results", timestamp=True):
 
     with open(os.path.join(RESULTS_DIR, filename), "w") as f:
         for r in results:
-            f.write(r[0] + " " + r[1] + "\n")
+            f.write(str(r[0]) + " " + str(r[1]) + "\n")
 
 
 def remove_punctuation(puns):
     """
     Remove punctuation characters from a puns dictionary.
+    This is unnecessary if you use only_content_words(puns).
     """
     new_puns = {}
     for punID, pun in puns.items():
@@ -77,6 +79,7 @@ def remove_punctuation(puns):
 def remove_stopwords(puns):
     """
     Remove stop words from a puns dictionary.
+    This is unnecessary if you use only_content_words(puns).
     """
     stopWords = set(stopwords.words('english'))
     new_puns = {}
@@ -84,6 +87,76 @@ def remove_stopwords(puns):
         new_puns[punID] = {}
         for wordID, word in pun.items():
             if word not in stopWords:
+                new_puns[punID][wordID] = word
+
+    return new_puns
+
+
+def add_pos_tags(puns):
+    """
+    Add POS tags in the puns dictionary.
+    The words are tuples (word, POS_tag), e.g. 'hom_1_8': ('sauna', 'NN')
+
+    NLTK Part of Speech tags from
+    https://pythonprogramming.net/natural-language-toolkit-nltk-part-speech-tagging/ :
+    CC      coordinating conjunction
+    CD      cardinal digit
+    DT      determiner
+    EX      existential there (like: "there is" ... think of it like "there exists")
+    FW      foreign word
+    IN      preposition/subordinating conjunction
+    JJ      adjective 'big'
+    JJR     adjective, comparative 'bigger'
+    JJS     adjective, superlative 'biggest'
+    LS      list marker 1)
+    MD      modal could, will
+    NN      noun, singular 'desk'
+    NNS     noun plural 'desks'
+    NNP     proper noun, singular 'Harrison'
+    NNPS    proper noun, plural 'Americans'
+    PDT     predeterminer 'all the kids'
+    POS     possessive ending parent's
+    PRP     personal pronoun I, he, she
+    PRP$    possessive pronoun my, his, hers
+    RB      adverb very, silently,
+    RBR     adverb, comparative better
+    RBS     adverb, superlative best
+    RP      particle give up
+    TO      to go 'to' the store.
+    UH      interjection 'errrrrrrrm'
+    VB      verb, base form take
+    VBD     verb, past tense took
+    VBG     verb, gerund/present participle taking
+    VBN     verb, past participle taken
+    VBP     verb, sing. present, non-3d take
+    VBZ     verb, 3rd person sing. present takes
+    WDT     wh-determiner which
+    WP      wh-pronoun who, what
+    WP$     possessive wh-pronoun whose
+    WRB     wh-abverb where, when
+    """
+    new_puns = {}
+    for punID, pun in puns.items():
+        new_puns[punID] = {}
+        pun_tokens = list(pun.values())
+        postags = pos_tag(pun_tokens)
+        for wordID, posItem in zip(pun.keys(), postags):
+            new_puns[punID][wordID] = posItem
+
+    return new_puns
+
+
+def only_content_words(puns):
+    """
+    Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
+    Assumes puns dictionary includes POS tags.
+    """
+    content_tags = ['FR', 'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'PRP', 'RB', 'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+    new_puns = {}
+    for punID, pun in puns.items():
+        new_puns[punID] = {}
+        for wordID, word in pun.items():
+            if word[1] in content_tags:
                 new_puns[punID][wordID] = word
 
     return new_puns
