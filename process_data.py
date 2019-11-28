@@ -167,17 +167,12 @@ def only_content_words(puns):
 def get_trigrams(puns):
     """
     Separate the context into trigrams
-    Return a list of tuples: (word1, word2, word3)
+    Return a list of tuples for each pun: [(word1, word2, word3), (word2, word3, word4)]
     """
-    tokenized_sents = []
     trigrams = []
-
     for punID, pun in puns.items():
-        for wordID, word in pun.items():
-            tokenized_sents.append(word_tokenize(" ".join(word.values())))
-
-    for sentence in tokenized_sents:
-        trigrams.append(list(ngrams(sentence, 3)))
+        tokenized_sents = list(pun.values())
+        trigrams.append(list(ngrams(tokenized_sents, 3)))
 
     return trigrams
 
