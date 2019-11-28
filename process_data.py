@@ -4,8 +4,6 @@ import time
 import string
 from nltk import pos_tag
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.util import ngrams
 
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
 RESULTS_DIR = os.path.join(".", "results")
@@ -162,24 +160,3 @@ def only_content_words(puns):
                 new_puns[punID][wordID] = word
 
     return new_puns
-
-
-def get_trigrams(puns):
-    """
-    Separate the context into trigrams
-    Return a list of tuples: (word1, word2, word3)
-    """
-    tokenized_sents = []
-    trigrams = []
-    stop_words = set(stopwords.words('english'))
-
-    for punID, pun in puns.items():
-        for wordID, word in pun.items():
-            tokenized_sents.append(word_tokenize(" ".join(word.values())))
-
-    for sentence in tokenized_sents:
-        sentence = [w.lower() for w in sentence if not w in stop_words]
-        trigrams.append(list(ngrams(sentence, 3)))
-
-    return trigrams
-
