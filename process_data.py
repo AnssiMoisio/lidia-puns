@@ -4,6 +4,8 @@ import time
 import string
 from nltk import pos_tag
 from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.util import ngrams
 
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
 RESULTS_DIR = os.path.join(".", "results")
