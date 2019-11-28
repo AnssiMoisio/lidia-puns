@@ -4,7 +4,6 @@ import time
 import string
 from nltk import pos_tag
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from nltk.util import ngrams
 
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
@@ -153,7 +152,8 @@ def only_content_words(puns):
     Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
     Assumes puns dictionary includes POS tags.
     """
-    content_tags = ['FR', 'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'PRP', 'RB', 'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
+
+    content_tags = ['FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
     new_puns = {}
     for punID, pun in puns.items():
         new_puns[punID] = {}
@@ -171,8 +171,8 @@ def get_trigrams(puns):
     """
     trigrams = {}
     for punID, pun in puns.items():
-        tokenized_sents = list(pun.values())
-        trigrams[punID] = list(ngrams(tokenized_sents, 3))
+        tokenized_sent = list(pun.values())
+        trigrams[punID] = list(ngrams(tokenized_sent, 3))
 
     return trigrams
 
