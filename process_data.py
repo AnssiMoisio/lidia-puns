@@ -182,3 +182,4 @@ def get_trigrams(puns):
         trigrams.append(list(ngrams(sentence, 3)))
 
     return trigrams
+
