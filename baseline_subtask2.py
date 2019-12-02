@@ -3,13 +3,13 @@ import process_data
 def select_last_word(puns):
     """
     Select the last word of the pun in the pun location task.
-    Return a list of tuples: (punID, lastwordID)
+    Return a dictionary: {punID: lastwordID}
     """
-    results = []
+    results = {}
     for punID, pun in puns.items():
         for wordID, word in pun.items():
             pass # iterate all words just to get last wordID
-        results.append( (punID, wordID) )
+        results[punID] = wordID
 
     return results
 
@@ -26,12 +26,15 @@ puns = process_data.remove_stopwords(puns)
 results = select_last_word(puns)
 process_data.write_results(results, filename=taskID + "-last-word-baseline-no-punctuation-no-stopwords", timestamp=False)
 """
-puns = process_data.only_content_words(process_data.add_pos_tags(puns))
+# puns = process_data.remove_stopwords(puns)
+puns = process_data.add_pos_tags(puns)
+# puns = process_data.only_content_words(puns)
 # results = select_last_word(puns)
 # process_data.write_results(results, filename=taskID + "-last-word-baseline-only-content-words", timestamp=True)
-print(puns["hom_631"])
+# print(puns["hom_631"])
 # puns = process_data.remove_stopwords(puns)
 # puns = process_data.only_content_words(process_data.add_pos_tags(puns))
 # print(puns['hom_1'])
 results = select_last_word(puns)
-process_data.write_results(results, filename=taskID + "-last-word-baseline-no-stopwords-only-content-words", timestamp=True)
+select_tom_swifty(puns, results)
+process_data.write_results(results, "test", timestamp=False)

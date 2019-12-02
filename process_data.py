@@ -50,16 +50,15 @@ def get_all_puns():
 
 def write_results(results, filename="results", timestamp=True):
     """
-    Write results into a text file from a list of tuples.
+    Write results into a text file from the results dictionary.
     """
     if timestamp:
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        filename += timestr
+        filename += time.strftime("%Y%m%d-%H%M%S")
     filename += ".txt"
 
     with open(os.path.join(RESULTS_DIR, filename), "w") as f:
-        for r in results:
-            f.write(str(r[0]) + " " + str(r[1]) + "\n")
+        for k in results.keys():
+            f.write(str(k) + " " + str(results[k]) + "\n")
 
 
 def remove_punctuation(puns):
