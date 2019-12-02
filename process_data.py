@@ -15,7 +15,7 @@ def get_puns(subtask=2, h="homographic"):
     of one subtask, either homographic or heterographic.
     
     To get a specific word in a (possible) pun from the nested dictionary:
-    puns["hom_2250"]["hom_2250_1"]
+    puns["hom_2250"]["hom_2250_1"]['token']
 
     return also the subtask ID, e.g. "subtask2-homographic"
     """
@@ -26,7 +26,8 @@ def get_puns(subtask=2, h="homographic"):
     for pun in root:
         puns[pun.attrib['id']] = {}
         for word in pun:
-            puns[pun.attrib['id']][word.attrib['id']] = word.text
+            puns[pun.attrib['id']][word.attrib['id']]           = {}
+            puns[pun.attrib['id']][word.attrib['id']]['token']  = word.text
 
     taskID = root.attrib['id']
     return puns, taskID
@@ -46,6 +47,32 @@ def get_all_puns():
         puns, taskid = get_puns(subtask=task, h="heterographic")
         all_puns[taskid] = puns
     return all_puns
+
+
+def get_pun_tokens(pun, exclude=[]):
+    """
+    Returns a list of the words (tokens) from a pun dictionary.
+    """
+    pun_tokens = []
+    for wordID, word in pun.items():
+        if wordID not in exclude:
+            pun_tokens.append(word['token'])
+
+    return pun_tokens
+
+
+def truncate_puns(puns, keep=10):
+    """
+    Truncate puns dictionary for evaluation purposes.
+    """
+    truncated_puns = {}
+    i = 0
+    for punID, pun in puns.items():
+        truncated_puns[punID] = pun
+        i += 1
+        if keep == i: break
+
+    return truncated_puns
 
 
 def write_results(results, filename="results", timestamp=True):
@@ -70,7 +97,7 @@ def remove_punctuation(puns):
     for punID, pun in puns.items():
         new_puns[punID] = {}
         for wordID, word in pun.items():
-            if word not in string.punctuation:
+            if word['token'] not in string.punctuation:
                 new_puns[punID][wordID] = word
 
     return new_puns
@@ -86,7 +113,7 @@ def remove_stopwords(puns):
     for punID, pun in puns.items():
         new_puns[punID] = {}
         for wordID, word in pun.items():
-            if word not in stopWords:
+            if word['token'] not in stopWords:
                 new_puns[punID][wordID] = word
 
     return new_puns
@@ -95,7 +122,8 @@ def remove_stopwords(puns):
 def add_pos_tags(puns):
     """
     Add POS tags in the puns dictionary.
-    The words are tuples (word, POS_tag), e.g. 'hom_1_8': ('sauna', 'NN')
+    The words are dictionaries with keys 'token' and 'pos'
+    e.g. 'hom_1_8': {'token': 'sauna', 'pos': 'NN'}
 
     NLTK Part of Speech tags from
     https://pythonprogramming.net/natural-language-toolkit-nltk-part-speech-tagging/ :
@@ -135,15 +163,13 @@ def add_pos_tags(puns):
     WP$     possessive wh-pronoun whose
     WRB     wh-abverb where, when
     """
-    new_puns = {}
     for punID, pun in puns.items():
-        new_puns[punID] = {}
-        pun_tokens = list(pun.values())
+        pun_tokens = get_pun_tokens(pun)
         postags = pos_tag(pun_tokens)
         for wordID, posItem in zip(pun.keys(), postags):
-            new_puns[punID][wordID] = posItem
-
-    return new_puns
+            puns[punID][wordID]['pos']      = posItem[1]
+             
+    return puns
 
 
 def only_content_words(puns):
@@ -151,13 +177,12 @@ def only_content_words(puns):
     Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
     Assumes puns dictionary includes POS tags.
     """
-
     content_tags = ['FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
     new_puns = {}
     for punID, pun in puns.items():
         new_puns[punID] = {}
         for wordID, word in pun.items():
-            if word[1] in content_tags:
+            if word['pos'] in content_tags:
                 new_puns[punID][wordID] = word
 
     return new_puns
@@ -170,7 +195,7 @@ def get_trigrams(puns):
     """
     trigrams = {}
     for punID, pun in puns.items():
-        tokenized_sent = list(pun.values())
+        tokenized_sent = get_pun_tokens(pun)
         trigrams[punID] = list(ngrams(tokenized_sent, 3))
 
     return trigrams
