@@ -8,12 +8,30 @@ def get_senses_of_word(word):
     """
 
 
-def word_similarity_with_context(senses, context):
+def word_vector(word):
+    """
+    return the word embedding of a word
+    """
+
+
+def cosine_similarity(w1, w2):
+    """
+    Return the similarity of two word vectors
+    """
+
+
+def word_similarity_with_context(word, context):
     """
     Calculate similarity of the senses with every context word
-    using word2vec and cosine similarity
     """
-    return list_of_senses_and_similarities
+    word_embed = word_vector(word)
+    sim_values = {}
+    for context_word in context:
+        sim_value[] = cosine_similarity(word_vector(context_word), word_embed)
+
+
+
+    return score
 
 
 def baseline_homographic():
@@ -22,3 +40,9 @@ def baseline_homographic():
     highest similarities with context
     """ 
 
+
+def n_gram_prob(ngram):
+    """
+    search the n-gram probability (or count) from google n-grams
+    """
+    return prob
