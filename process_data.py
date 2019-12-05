@@ -49,14 +49,20 @@ def get_all_puns():
     return all_puns
 
 
-def get_pun_tokens(pun, exclude=[], exclude_stopwords=True):
+def get_pun_tokens(pun, exclude=[], return_pos_tags=False):
     """
     Returns a list of the words (tokens) from a pun dictionary.
     """
     pun_tokens = []
+    pos_tags = []
     for wordID, word in pun.items():
         if wordID not in exclude:
             pun_tokens.append(word['token'])
+            if return_pos_tags:
+                pos_tags.append(word['pos'])
+
+    if return_pos_tags:
+        return pun_tokens, pos_tags
 
     return pun_tokens
 
@@ -119,6 +125,18 @@ def remove_stopwords(puns):
     return new_puns
 
 
+def lowercase_caps_lock_words(puns):
+    """
+    There are some words WRITTEN WITH CAPS LOCK so make those lowercase.
+    A capitalised Word (only first letter is upper case) should not be affected.
+    Ignore one-letter words.
+    """
+    for punID, pun in puns.items():
+        for wordID, word in pun.items():
+            if word['token'].isupper() and len(word['token']) > 1:
+                word['token'] = word['token'].lower()
+
+
 def lowercase(puns):
     """
     Turn all words except proper nouns into lowercase.
@@ -127,8 +145,6 @@ def lowercase(puns):
         for wordID, word in pun.items():
             if word['pos'] not in {'NNP', 'NNPS'}:
                 word['token'] = word['token'].lower()
-
-    return puns
 
 
 def add_pos_tags(puns):
@@ -179,9 +195,23 @@ def add_pos_tags(puns):
         pun_tokens = get_pun_tokens(pun)
         postags = pos_tag(pun_tokens)
         for wordID, posItem in zip(pun.keys(), postags):
-            puns[punID][wordID]['pos']      = posItem[1]
-             
-    return puns
+            puns[punID][wordID]['pos'] = posItem[1]
+
+
+def add_word_numbers(puns):
+    """
+    Add the number from wordID as a key-value pair in the word dictionary.
+    E.g. "hom_345_13" -> word["word_number"]: 13 
+    """
+    for punID, pun in puns.items():
+        for wordID, word in pun.items():
+            _counter = 0
+            for char_ind in range(len(wordID)):
+                if wordID[char_ind] == "_":
+                    _counter += 1
+                if _counter == 2:
+                    word['word_number'] = int(wordID[char_ind + 1:])
+                    break
 
 
 def only_content_words(puns):
