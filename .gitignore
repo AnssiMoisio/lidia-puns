@@ -4,3 +4,5 @@ __pycache__/
 results/
 stories/
 *.pickle
+*.pkl
+embedding models

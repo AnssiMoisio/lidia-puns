@@ -49,7 +49,7 @@ def get_all_puns():
     return all_puns
 
 
-def get_pun_tokens(pun, exclude=[]):
+def get_pun_tokens(pun, exclude=[], exclude_stopwords=True):
     """
     Returns a list of the words (tokens) from a pun dictionary.
     """
@@ -117,6 +117,18 @@ def remove_stopwords(puns):
                 new_puns[punID][wordID] = word
 
     return new_puns
+
+
+def lowercase(puns):
+    """
+    Turn all words except proper nouns into lowercase.
+    """
+    for punID, pun in puns.items():
+        for wordID, word in pun.items():
+            if word['pos'] not in {'NNP', 'NNPS'}:
+                word['token'] = word['token'].lower()
+
+    return puns
 
 
 def add_pos_tags(puns):
