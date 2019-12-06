@@ -1,6 +1,7 @@
 import process_data
 import string
-import operator
+import numpy as np
+import copy
 from nltk import FreqDist
 from nltk.corpus import wordnet as wn, stopwords, brown
 
@@ -20,19 +21,23 @@ def get_last_word(pun):
     """
     return the wordID (e.g. "hom_2_4") with the largest word number from this pun
     """
+    lastID = None
     largest_word_number = 0
     for wordID, word in pun.items():
         if word['word_number'] > largest_word_number:
             largest_word_number = word['word_number']
             lastID = wordID
 
-    return lastID
+    if lastID is not None:
+        return lastID
+    else:
+        print("get last word error")
 
 
 def select_last_word(puns):
     """
     Select the last word of the pun in the pun location task.
-    Return a dictionary: {punID: lastwordID}
+    Return a results dictionary: {punID: lastwordID}
     """
     results = {}
     for punID, pun in puns.items():
@@ -44,7 +49,7 @@ def select_last_word_exclude_most_common(puns):
     """
     Select the last word of the pun in the pun location task.
     Exclude most common words in the Brown Corpus
-    Return a dictionary: {punID: lastwordID}
+    Return a results dictionary: {punID: lastwordID}
     """
     results = {}
     for punID, pun in puns.items():
@@ -58,15 +63,41 @@ def select_last_word_exclude_most_common(puns):
 
     return results
 
-'''
-puns, taskID = process_data.get_puns()
-# puns = process_data.truncate_puns(puns, keep=30)
+
+def select_least_common_of_last_n_words(puns, n):
+    """
+    Select the least common word of the n last words of pun.
+    use the Brown Corpus
+    Return a results dictionary.
+    """
+    results = {}
+    
+    for punID, pun in puns.items():
+        new_pun = copy.deepcopy(pun)
+        last_n_words = [""] * n
+        word_freqs = np.zeros((n))
+        for i in range(n):
+            last_n_words[i] = get_last_word(new_pun)
+            try:
+                del new_pun[last_n_words[i]]
+            except KeyError:
+                break
+            w = pun[last_n_words[i]]['token']
+            # w = wn.morphy(w) if wn.morphy(w) is not None else w
+            word_freqs[i] = word_freq[w]
+
+        # least_common
+        results[punID] = last_n_words[np.argmin(word_freqs)]
+
+    return results
+
+
+puns, taskID = process_data.get_puns(h="homographic", truncate=None)
 process_data.lowercase_caps_lock_words(puns)
 process_data.add_pos_tags(puns)
 process_data.lowercase(puns)
 puns = process_data.only_content_words(puns)
 puns = process_data.remove_stopwords(puns)
 process_data.add_word_numbers(puns)
-results = select_last_word_exclude_most_common(puns)
-process_data.write_results(results, filename=taskID + "-baseline-exclude-" + str(n_exclude) + "-most-common", timestamp=False)
-'''
+results = select_least_common_of_last_n_words(puns, 2)
+process_data.write_results(results, filename=taskID + "-test", timestamp=False)

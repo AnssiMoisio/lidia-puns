@@ -9,7 +9,7 @@ from nltk.util import ngrams
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
 RESULTS_DIR = os.path.join(".", "results")
 
-def get_puns(subtask=2, h="homographic"):
+def get_puns(subtask=2, h="homographic", truncate=3000):
     """
     Create a dictionary nested in a dictionary that contains all puns
     of one subtask, either homographic or heterographic.
@@ -23,11 +23,15 @@ def get_puns(subtask=2, h="homographic"):
     root = ET.parse(os.path.join(DATA_DIR, filename)).getroot()
 
     puns = {}
+    t = 0
     for pun in root:
         puns[pun.attrib['id']] = {}
         for word in pun:
             puns[pun.attrib['id']][word.attrib['id']]           = {}
             puns[pun.attrib['id']][word.attrib['id']]['token']  = word.text
+        t += 1
+        if t == truncate:
+            break
 
     taskID = root.attrib['id']
     return puns, taskID
@@ -67,20 +71,6 @@ def get_pun_tokens(pun, exclude=[], return_pos_tags=False):
     return pun_tokens
 
 
-def truncate_puns(puns, keep=10):
-    """
-    Truncate puns dictionary for evaluation purposes.
-    """
-    truncated_puns = {}
-    i = 0
-    for punID, pun in puns.items():
-        truncated_puns[punID] = pun
-        i += 1
-        if keep == i: break
-
-    return truncated_puns
-
-
 def write_results(results, filename="results", timestamp=True):
     """
     Write results into a text file from the results dictionary.
@@ -112,7 +102,6 @@ def remove_punctuation(puns):
 def remove_stopwords(puns):
     """
     Remove stop words from a puns dictionary.
-    This is unnecessary if you use only_content_words(puns).
     """
     stopWords = set(stopwords.words('english'))
     new_puns = {}

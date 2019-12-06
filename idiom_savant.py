@@ -1,17 +1,18 @@
 import process_data
 import baseline_subtask2
-from gensim.models import Word2Vec, KeyedVectors
-import numpy as np
 import os
 import string
 import time
-from tqdm import tqdm # progress bar for long loops
+import numpy as np
 from numpy.linalg import norm
+import matplotlib.pyplot as plt
+from tqdm import tqdm # progress bar for long loops
+from gensim.models import Word2Vec, KeyedVectors
 from nltk import FreqDist
 from nltk.corpus import wordnet as wn, stopwords, brown
-from nltk.tokenize import RegexpTokenizer 
-tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
+from nltk.tokenize import RegexpTokenizer
 
+tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
 stopWords = set(stopwords.words('english'))
 
 # retrieve the 100 most common words from the Brown Corpus, exclude stopwords and punctuation
@@ -93,11 +94,11 @@ def similarity(w1, w2, metric=None, correction=True):
         try:
             sim = wv_model.similarity(w1, w2)
         except KeyError as err:
-            # print("Word2Vec error in similarity():", err)
+            print("Word2Vec error in similarity():", err)
             sim = 0.2 # arbitrary
             # just for adding the words in the words_not_in_w2v set
-            word_vector(w1) 
-            word_vector(w2)
+            # word_vector(w1) 
+            # word_vector(w2)
             
     # f_ws() correction function from the article
     if correction:
@@ -229,6 +230,29 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, no
                         puns[punID][wordID]['score'] *= 0.3
 
 
+def show_similarity(pun):
+    pun_tokens = process_data.get_pun_tokens(pun)
+    d = len(pun_tokens)
+    matrix = np.zeros((d, d))
+    for i in range(d):
+        for j in range(d):
+            if i == j:
+                pass
+            else:
+                try:
+                    matrix[i][j] = wv_model.similarity(pun_tokens[i], pun_tokens[j])
+                except KeyError as err:
+                    print("Word2Vec error in similarity():", err)
+
+    # Display matrix
+    print("matr")
+    for a in matrix:
+        print(a)
+    plt.matshow(matrix, cmap=plt.get_cmap('Blues'))
+    plt.xticks(range(d), labels=pun_tokens)
+    plt.yticks(range(d), labels=pun_tokens)
+
+
 def get_results(puns):
     """
     Create results based on scores.
@@ -253,23 +277,44 @@ def print_scores(pun):
         print(wordID, word['token'], word['score'])
 
 
-puns, taskID = process_data.get_puns()
-puns = process_data.truncate_puns(puns, keep=20)
+puns, taskID = process_data.get_puns(truncate=200)
+print(process_data.get_pun_tokens(puns["hom_1"]))
+print(process_data.get_pun_tokens(puns["hom_2"]))
+print(process_data.get_pun_tokens(puns["hom_3"]))
+print(process_data.get_pun_tokens(puns["hom_4"]))
+print(process_data.get_pun_tokens(puns["hom_5"]))
+print(process_data.get_pun_tokens(puns["hom_22"]))
+print(process_data.get_pun_tokens(puns["hom_39"]))
+print(process_data.get_pun_tokens(puns["hom_107"]))
+print(process_data.get_pun_tokens(puns["hom_128"]))
+print(process_data.get_pun_tokens(puns["hom_136"]))
 process_data.lowercase_caps_lock_words(puns)
 process_data.add_pos_tags(puns)
 puns = process_data.remove_stopwords(puns)
 puns = process_data.only_content_words(puns)
 process_data.lowercase(puns)
-process_data.add_word_numbers(puns)
-gloss_score_homographic(puns, use_context_gloss=True, use_examples=True, normalise=True)
-results = get_results(puns)
-process_data.write_results(results, filename=taskID + "-idiom_savant", timestamp=False)
+show_similarity(puns["hom_1"])
+show_similarity(puns["hom_2"])
+show_similarity(puns["hom_3"])
+show_similarity(puns["hom_4"])
+show_similarity(puns["hom_5"])
+show_similarity(puns["hom_22"])
+show_similarity(puns["hom_39"])
+show_similarity(puns["hom_107"])
+show_similarity(puns["hom_128"])
+show_similarity(puns["hom_136"])
+plt.show()
 
-print_scores(puns["hom_1"])
-print_scores(puns["hom_2"])
-print_scores(puns["hom_3"])
-print_scores(puns["hom_4"])
-print_scores(puns["hom_5"])
+# process_data.add_word_numbers(puns)
+# gloss_score_homographic(puns, use_context_gloss=True, use_examples=True, normalise=True)
+# results = get_results(puns)
+# process_data.write_results(results, filename=taskID + "-idiom_savant", timestamp=False)
+
+# print_scores(puns["hom_1"])
+# print_scores(puns["hom_2"])
+# print_scores(puns["hom_3"])
+# print_scores(puns["hom_4"])
+# print_scores(puns["hom_5"])
 
 # for item in words_not_in_w2v:
 #     print(item)
@@ -277,9 +322,3 @@ print_scores(puns["hom_5"])
 # for item in words_not_in_wordnet:
 #     print("not in wordnet:", item)
 
-
-def n_gram_prob(ngram):
-    """
-    search the n-gram probability (or count) from google n-grams
-    """
-    # return prob
