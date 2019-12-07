@@ -98,6 +98,9 @@ def get_sound_pairs():
     for k in sound_dict:
         sound_dict[k] = list(chain(*sound_dict[k]))
         sound_dict[k] = set(sound_dict[k])
+    for key, value in sound_dict.items():
+        if key in value:
+            value.remove(key)
     print(sound_dict)
     return sound_dict
 
