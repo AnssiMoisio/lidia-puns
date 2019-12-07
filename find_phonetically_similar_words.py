@@ -1,8 +1,9 @@
 import numpy as np
 import nltk
 import string
-from nltk.tokenize import word_tokenize
+from nltk.tokenize import TweetTokenizer
 from nltk.util import ngrams
+import process_data
 
 stopWords = set(nltk.corpus.stopwords.words('english'))
 
@@ -63,25 +64,43 @@ def get_most_similar_word(puns):
     print(similar_words)
 
 
-def get_bigrams():
+def get_sound_pairs():
     with open('output.txt', 'r') as f:
         l = f.read().splitlines()
 
+    tokenizer = TweetTokenizer()
     l = [elem.replace(',', '') for elem in l]
+    l = [tokenizer.tokenize(elem) for elem in l]
 
-    #tokenizer = TweetTokenizer
-    l = [word_tokenize(elem) for elem in l]
+    sound_dict = {}
+    #sound_pairs = []
+    from itertools import permutations
 
-
-    n_grams = []
     for elem in l:
-        n_grams.append(set(ngrams(elem, 2)))
+        sound_dict[elem[0]] = list(permutations(elem, 2))
+        #print("added:"+elem[0] + " as key and ", list(permutations(elem, 2)), "as value")
+        sound_dict[elem[1]] = list(permutations(elem, 2))
+        #print("added:"+elem[1] + " as key and ", list(permutations(elem, 2)), "as value")
+        if len(elem) == 3:
+            sound_dict[elem[2]] = list(permutations(elem, 2))
+            #print("added:"+elem[2] + " as key and ", list(permutations(elem, 2)), "as value")
+        elif len(elem) == 4:
+            #print(elem)
+            #print("addedhiiiii:"+elem[3] + " as key and ", list(permutations(elem, 2)), "as value")
+            sound_dict[elem[3]] = list(permutations(elem, 2))
+            sound_dict[elem[2]] = list(permutations(elem, 2))
 
-    n_grams = [j for i in n_grams for j in i]
+        #sound_pairs.append(set(ngrams(elem, 2)))
+    #sound_pairs = [j for i in sound_pairs for j in i]
+    #sound_dict = dict(sound_pairs)
+    from itertools import chain
 
-    return n_grams
+    for k in sound_dict:
+        sound_dict[k] = list(chain(*sound_dict[k]))
+        sound_dict[k] = set(sound_dict[k])
+    print(sound_dict)
+    return sound_dict
 
-import process_data
 puns, taskID = process_data.get_puns()
 
 tokens = []
@@ -89,8 +108,8 @@ for punID, pun in puns.items():
     tokens.append(process_data.get_pun_tokens(pun))
 
 tokens = [j for i in tokens for j in i]
-count = 0
-bigrams = get_bigrams()
-print(len(set(bigrams)))
-out = [item for t in bigrams for item in t]
-print(len(set(out).intersection(tokens)))
+
+sound_pairs = get_sound_pairs()
+#print(len(set(sound_pairs)))
+out = [item for t in sound_pairs for item in t]
+#print(len(set(out).intersection(tokens)))
