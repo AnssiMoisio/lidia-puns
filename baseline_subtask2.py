@@ -1,4 +1,5 @@
 import process_data
+import Uwaterloo
 import string
 import numpy as np
 import copy
@@ -64,40 +65,66 @@ def select_last_word_exclude_most_common(puns):
     return results
 
 
-def select_least_common_of_last_n_words(puns, n):
+def select_least_common_of_last_n_words(pun, n):
     """
     Select the least common word of the n last words of pun.
     use the Brown Corpus
-    Return a results dictionary.
+    Return the word ID.
     """
-    results = {}
-    
-    for punID, pun in puns.items():
-        new_pun = copy.deepcopy(pun)
-        last_n_words = [""] * n
-        word_freqs = np.zeros((n))
-        for i in range(n):
-            last_n_words[i] = get_last_word(new_pun)
-            try:
-                del new_pun[last_n_words[i]]
-            except KeyError:
-                break
-            w = pun[last_n_words[i]]['token']
-            # w = wn.morphy(w) if wn.morphy(w) is not None else w
-            word_freqs[i] = word_freq[w]
+    ID = ""
+    new_pun = copy.deepcopy(pun)
+    last_n_words = [""] * n
+    word_freqs = np.zeros((n))
+    for i in range(n):
+        last_n_words[i] = get_last_word(new_pun)
+        try:
+            del new_pun[last_n_words[i]]
+        except KeyError:
+            break
+        w = pun[last_n_words[i]]['token']
+        # w = wn.morphy(w) if wn.morphy(w) is not None else w
+        word_freqs[i] = word_freq[w]
 
-        # least_common
-        results[punID] = last_n_words[np.argmin(word_freqs)]
+    # least_common
+    ID = last_n_words[np.argmin(word_freqs)]
 
-    return results
+    return ID
+
+def select_word_with_lowest_freq(pun):
+    """
+    Select the least common word.
+    use the Brown Corpus
+    Return the word ID.
+    """
+
+    min_freq = np.inf
+    minID = ""
+    for wordID, word in pun.items():
+        try:
+            f = word_freq[word['token']]
+        except KeyError:
+            f = 0
+        if f < min_freq:
+            min_freq = f
+            minID = wordID
+
+    # print(minID, pun[minID]['token'],pun[minID]['pos'], min_freq)
+    return minID
 
 
-puns, taskID = process_data.get_puns(h="homographic", truncate=None)
+puns, taskID = process_data.get_puns(h="heterographic", truncate=None)
 process_data.lowercase_caps_lock_words(puns)
 process_data.add_pos_tags(puns)
 process_data.lowercase(puns)
 puns = process_data.only_content_words(puns)
 puns = process_data.remove_stopwords(puns)
 process_data.add_word_numbers(puns)
-results = select_least_common_of_last_n_words(puns, 2)
+
+results = {}
+for punID, pun in puns.items():
+    wordID = select_word_with_lowest_freq(pun)
+    # if pun[wordID]['token'] == 'Tom' or pun[wordID]['word_number'] == 1:
+    #     wordID = select_least_common_of_last_n_words(pun, 2)
+    results[punID] = wordID
+
 process_data.write_results(results, filename=taskID + "-test", timestamp=False)

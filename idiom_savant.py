@@ -14,7 +14,7 @@ from nltk.tokenize import RegexpTokenizer
 
 tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
 stopWords = set(stopwords.words('english'))
-
+'''
 # retrieve the 100 most common words from the Brown Corpus, exclude stopwords and punctuation
 words = brown.words()
 filtered_words = [w.lower() for w in words if w.lower() not in stopWords and w not in string.punctuation and w not in "''``'--"]
@@ -34,7 +34,7 @@ for wordtuple in list(word_freq.most_common(100)):
 model_filename = os.path.join("embedding models", "GoogleNews-vectors-negative300.bin")
 # takes about a minute to just create this model (it's big)
 wv_model =  KeyedVectors.load_word2vec_format(model_filename, binary=True)
-
+'''
 # sets for seeing which words are not in vocabulary
 words_not_in_wordnet = set()
 words_not_in_w2v = set()
@@ -48,9 +48,10 @@ def get_senses_of_word(word):
     synsets = wn.synsets(word)
     if len(synsets) == 0:
         words_not_in_wordnet.add(word)
-        # print("{} not in WordNet".format(word))
+        print("{} not in WordNet".format(word))
 
     return synsets
+
 
 
 def get_gloss_set(synset, include_examples=True):
@@ -69,6 +70,10 @@ def get_gloss_set(synset, include_examples=True):
     return gloss_tokens
 
 
+print(get_senses_of_word("dragon")[0].lemmas()[0].key())
+
+
+
 def word_vector(word):
     """
     Return the word embedding of a word.
@@ -78,7 +83,6 @@ def word_vector(word):
     except KeyError as err:
         words_not_in_w2v.add(word)
         # print("Word2Vec error in word_vector():", err)
-
 
 def similarity(w1, w2, metric=None, correction=True):
     """
@@ -109,7 +113,6 @@ def similarity(w1, w2, metric=None, correction=True):
 
     return sim
 
-
 def sim_token_lists(lista, listb):
     """
     Calculate similarity of two lists of tokens.
@@ -120,7 +123,6 @@ def sim_token_lists(lista, listb):
             similarity_sum += similarity(a, b)
 
     return similarity_sum
-
 
 def baseline_score_homographic(puns):
     """
@@ -137,7 +139,6 @@ def baseline_score_homographic(puns):
             puns[punID][wordID]['score'] = sim_token_lists([word['token']], pun_tokens)
 
     return puns
-
 
 def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, normalise=True):
     """
@@ -229,7 +230,6 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, no
                         # print('context word "{}" is in most_common_words'.format(context_word))
                         puns[punID][wordID]['score'] *= 0.3
 
-
 def show_similarity(pun):
     pun_tokens = process_data.get_pun_tokens(pun)
     d = len(pun_tokens)
@@ -252,7 +252,6 @@ def show_similarity(pun):
     plt.xticks(range(d), labels=pun_tokens)
     plt.yticks(range(d), labels=pun_tokens)
 
-
 def get_results(puns):
     """
     Create results based on scores.
@@ -269,56 +268,9 @@ def get_results(puns):
 
     return results
 
-
 def print_scores(pun):
     # print(pun.values())
     print("pun:")
     for wordID, word in pun.items():
         print(wordID, word['token'], word['score'])
-
-
-puns, taskID = process_data.get_puns(truncate=200)
-print(process_data.get_pun_tokens(puns["hom_1"]))
-print(process_data.get_pun_tokens(puns["hom_2"]))
-print(process_data.get_pun_tokens(puns["hom_3"]))
-print(process_data.get_pun_tokens(puns["hom_4"]))
-print(process_data.get_pun_tokens(puns["hom_5"]))
-print(process_data.get_pun_tokens(puns["hom_22"]))
-print(process_data.get_pun_tokens(puns["hom_39"]))
-print(process_data.get_pun_tokens(puns["hom_107"]))
-print(process_data.get_pun_tokens(puns["hom_128"]))
-print(process_data.get_pun_tokens(puns["hom_136"]))
-process_data.lowercase_caps_lock_words(puns)
-process_data.add_pos_tags(puns)
-puns = process_data.remove_stopwords(puns)
-puns = process_data.only_content_words(puns)
-process_data.lowercase(puns)
-show_similarity(puns["hom_1"])
-show_similarity(puns["hom_2"])
-show_similarity(puns["hom_3"])
-show_similarity(puns["hom_4"])
-show_similarity(puns["hom_5"])
-show_similarity(puns["hom_22"])
-show_similarity(puns["hom_39"])
-show_similarity(puns["hom_107"])
-show_similarity(puns["hom_128"])
-show_similarity(puns["hom_136"])
-plt.show()
-
-# process_data.add_word_numbers(puns)
-# gloss_score_homographic(puns, use_context_gloss=True, use_examples=True, normalise=True)
-# results = get_results(puns)
-# process_data.write_results(results, filename=taskID + "-idiom_savant", timestamp=False)
-
-# print_scores(puns["hom_1"])
-# print_scores(puns["hom_2"])
-# print_scores(puns["hom_3"])
-# print_scores(puns["hom_4"])
-# print_scores(puns["hom_5"])
-
-# for item in words_not_in_w2v:
-#     print(item)
-
-# for item in words_not_in_wordnet:
-#     print("not in wordnet:", item)
 

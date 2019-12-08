@@ -1,12 +1,37 @@
 import process_data
 import pickle
 
-with open('tf-idf.pickle', 'rb') as handle:
-    tf_idf = pickle.load(handle)
-with open('df.pickle', 'rb') as handle:
-    df = pickle.load(handle)
+
+def get_homonym_dict():
+    """
+    Get a dictionary of similarly sounding words from "homonyms.txt"
+    """
+    with open('homonyms.txt', 'r') as f:
+        l = f.read().splitlines()
+
+    l = [line.replace(',', ' ').split() for line in l]
+
+    homonym_dict = {}
+    for line in l:
+        for word in line:
+            if word not in homonym_dict:
+                homonym_dict[word] = set(line)
+            else:
+                homonym_dict[word] = homonym_dict[word].union(set(line))
+    
+    for word, set_of_homonyms in homonym_dict.items():
+        if word in set_of_homonyms:
+            set_of_homonyms.remove(word)
+
+    return homonym_dict
+
 
 def select_tom_swifty(puns, results):
+    """
+    Use some heuristics to identify and select the pun word for Tom Swifty puns.
+
+    probably not useful
+    """
     for punID, pun in puns.items():
         if ('said', 'VBD') in set(pun.values()):
             for wordID, word in pun.items():
@@ -15,24 +40,3 @@ def select_tom_swifty(puns, results):
                     results[punID] = wordID
 
 
-# def score_tf_idf(puns):
-#     for punID, pun in puns.items():
-puns, asd = process_data.get_puns()
-puns = process_data.only_content_words(process_data.add_pos_tags(process_data.remove_punctuation(puns) ))
-keyerrors = 0
-
-for punID, pun in puns.items():
-    for wordID, word in pun.items():
-        try:
-            df[word[0].lower()]
-        except KeyError:
-            keyerrors += 1
-            try:
-                print(word[0].lower())
-            except UnicodeEncodeError:
-                print("unicode error")
-            
-
-print(keyerrors)
-
-        

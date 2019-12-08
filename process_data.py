@@ -9,13 +9,13 @@ from nltk.util import ngrams
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
 RESULTS_DIR = os.path.join(".", "results")
 
-def get_puns(subtask=2, h="homographic", truncate=3000):
+def get_puns(subtask=2, h="homographic", truncate=None):
     """
     Create a dictionary nested in a dictionary that contains all puns
     of one subtask, either homographic or heterographic.
     
     To get a specific word in a (possible) pun from the nested dictionary:
-    puns["hom_2250"]["hom_2250_1"]['token']
+    puns["hom_2250"]["hom_2250_1"]["token"]
 
     return also the subtask ID, e.g. "subtask2-homographic"
     """
@@ -187,6 +187,22 @@ def add_pos_tags(puns):
             puns[punID][wordID]['pos'] = posItem[1]
 
 
+def only_content_words(puns):
+    """
+    Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
+    Assumes puns dictionary includes POS tags.
+    """
+    content_tags = ['FW', 'JJ', 'NN', 'RB', 'VB'] # first 2 letters of POS tag
+    new_puns = {}
+    for punID, pun in puns.items():
+        new_puns[punID] = {}
+        for wordID, word in pun.items():
+            if word['pos'][:2] in content_tags:
+                new_puns[punID][wordID] = word
+
+    return new_puns
+
+
 def add_word_numbers(puns):
     """
     Add the number from wordID as a key-value pair in the word dictionary.
@@ -201,22 +217,6 @@ def add_word_numbers(puns):
                 if _counter == 2:
                     word['word_number'] = int(wordID[char_ind + 1:])
                     break
-
-
-def only_content_words(puns):
-    """
-    Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
-    Assumes puns dictionary includes POS tags.
-    """
-    content_tags = ['FW', 'JJ', 'JJR', 'JJS', 'NN', 'NNS', 'NNP', 'NNPS', 'RB', 'RBS', 'VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ']
-    new_puns = {}
-    for punID, pun in puns.items():
-        new_puns[punID] = {}
-        for wordID, word in pun.items():
-            if word['pos'] in content_tags:
-                new_puns[punID][wordID] = word
-
-    return new_puns
 
 
 def get_trigrams(puns):
