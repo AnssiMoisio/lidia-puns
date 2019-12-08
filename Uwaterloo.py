@@ -4,7 +4,7 @@ import pickle
 
 def get_homophone_dict():
     """
-    Get a dictionary of similarly sounding words from "homonyms.txt"
+    Get a dictionary of similarly sounding words from "homophones.txt"
     """
     with open('homophones.txt', 'r') as f:
         l = f.read().splitlines()
@@ -25,7 +25,6 @@ def get_homophone_dict():
 
     return homophone_dict
 
-a = get_homophone_dict()
 
 def select_tom_swifty(puns, results):
     """
