@@ -7,21 +7,19 @@ def get_homophone_dict():
     Get a dictionary of similarly sounding words from "homophones.txt"
     """
     with open('homophones.txt', 'r') as f:
-        l = f.read().splitlines()
+        homophones = f.read().splitlines()
 
-    l = [line.replace(',', ' ').split() for line in l]
+    homophones = [line.replace(',', ' ').split() for line in homophones]
 
     homophone_dict = {}
-    for line in l:
+    for line in homophones:
+        line_set = set(line)
         for word in line:
+            line_set_without_word = line_set.difference(set([word]))
             if word not in homophone_dict:
-                homophone_dict[word] = set(line)
+                homophone_dict[word] = line_set_without_word
             else:
-                homophone_dict[word] = homophone_dict[word].union(set(line))
-    
-    for word, set_of_homophones in homophone_dict.items():
-        if word in set_of_homophones:
-            set_of_homophones.remove(word)
+                homophone_dict[word].update(line_set_without_word)
 
     return homophone_dict
 
@@ -38,5 +36,3 @@ def select_tom_swifty(puns, results):
                 if word[1] == 'RB' and word[0][-2:] == 'ly':
                     print(pun.values(), word[0])
                     results[punID] = wordID
-
-
