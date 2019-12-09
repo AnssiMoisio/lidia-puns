@@ -2,9 +2,9 @@ import process_data
 import pickle
 
 
-def get_homophone_dict():
+def create_homophone_dict():
     """
-    Get a dictionary of similarly sounding words from "homophones.txt"
+    Create a dictionary of similarly sounding words from "homophones.txt"
     """
     with open('homophones.txt', 'r') as f:
         homophones = f.read().splitlines()
@@ -13,16 +13,14 @@ def get_homophone_dict():
 
     homophone_dict = {}
     for line in homophones:
-        line_set = set(line)
         for word in line:
-            line_set_without_word = line_set.difference(set([word]))
+            homophone_set = set(line).difference(set([word]))
             if word not in homophone_dict:
-                homophone_dict[word] = line_set_without_word
+                homophone_dict[word] = homophone_set
             else:
-                homophone_dict[word].update(line_set_without_word)
+                homophone_dict[word].update(homophone_set)
 
     return homophone_dict
-
 
 def select_tom_swifty(puns, results):
     """

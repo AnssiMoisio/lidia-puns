@@ -12,33 +12,34 @@ from nltk import FreqDist
 from nltk.corpus import wordnet as wn, stopwords, brown
 from nltk.tokenize import RegexpTokenizer
 
-tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
-stopWords = set(stopwords.words('english'))
-'''
-# retrieve the 100 most common words from the Brown Corpus, exclude stopwords and punctuation
-words = brown.words()
-filtered_words = [w.lower() for w in words if w.lower() not in stopWords and w not in string.punctuation and w not in "''``'--"]
-word_freq = FreqDist(w for w in filtered_words)
-most_common_words = set()
-for wordtuple in list(word_freq.most_common(100)):
-    most_common_words.add(wordtuple[0])
-
-
-# this is a subset of only the 60000 most frequent words
-# download from commit 45e9102bef1a699688bb2d62a9fa2551ed4b463c if needed
-# glove_filename = os.path.join("embedding models", 'glove.6B.100d.60k.word2vec.txt')
-# glove_model = KeyedVectors.load_word2vec_format(glove_filename, binary=False)
-
-# full word2vec model trained by Google
-# download: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
-model_filename = os.path.join("embedding models", "GoogleNews-vectors-negative300.bin")
-# takes about a minute to just create this model (it's big)
-wv_model =  KeyedVectors.load_word2vec_format(model_filename, binary=True)
-'''
 # sets for seeing which words are not in vocabulary
 words_not_in_wordnet = set()
 words_not_in_w2v = set()
 
+# full word2vec model trained by Google
+# download: https://drive.google.com/file/d/0B7XkCwpI5KDYNlNUTTlSS21pQmM/edit?usp=sharing
+model_filename = os.path.join("embedding models", "GoogleNews-vectors-negative300.bin")
+wv_model = KeyedVectors.load_word2vec_format(model_filename, binary=True)
+
+def create_freq_dict(n_most_common=None, filtered=False):
+    """
+    Word frequencies from brown corpus
+    """
+    tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
+    stopWords = set(stopwords.words('english'))
+    words = brown.words()
+    if filtered:
+        filtered_words = [w.lower() for w in words if w.lower() not in stopWords and w not in string.punctuation and w not in "''``'--"]
+        word_freq = FreqDist(w for w in filtered_words)
+    else:
+        word_freq = FreqDist(w for w in words)
+    if n_most_common is not None:
+        most_common_words = set()
+        for wordtuple in list(word_freq.most_common(n_most_common)):
+            most_common_words.add(wordtuple[0])
+        return most_common_words
+    else:
+        return word_freq
 
 def get_senses_of_word(word):
     """
@@ -51,8 +52,6 @@ def get_senses_of_word(word):
         print("{} not in WordNet".format(word))
 
     return synsets
-
-
 
 def get_gloss_set(synset, include_examples=True):
     """
@@ -68,11 +67,6 @@ def get_gloss_set(synset, include_examples=True):
             gloss_tokens = gloss_tokens.union(example)
 
     return gloss_tokens
-
-
-print(get_senses_of_word("dragon")[0].lemmas()[0].key())
-
-
 
 def word_vector(word):
     """
@@ -274,3 +268,31 @@ def print_scores(pun):
     for wordID, word in pun.items():
         print(wordID, word['token'], word['score'])
 
+
+puns, taskID = process_data.get_puns(truncate=None)
+# process_data.lowercase_caps_lock_words(puns)
+# process_data.add_pos_tags(puns)
+# process_data.lowercase(puns)
+# puns = process_data.only_content_words(puns)
+# puns = process_data.remove_stopwords(puns)
+print(process_data.get_pun_tokens(puns["hom_1"])))
+print(process_data.get_pun_tokens(puns["hom_2"]))
+print(process_data.get_pun_tokens(puns["hom_3"]))
+print(process_data.get_pun_tokens(puns["hom_4"]))
+print(" ".join(process_data.get_pun_tokens(puns["hom_5"])))
+print(process_data.get_pun_tokens(puns["hom_22"]))
+print(process_data.get_pun_tokens(puns["hom_39"]))
+print(" ".join(process_data.get_pun_tokens(puns["hom_107"])))
+print(process_data.get_pun_tokens(puns["hom_128"]))
+print(process_data.get_pun_tokens(puns["hom_136"]))
+show_similarity(puns["hom_1"])
+show_similarity(puns["hom_2"])
+show_similarity(puns["hom_3"])
+show_similarity(puns["hom_4"])
+show_similarity(puns["hom_5"])
+show_similarity(puns["hom_22"])
+show_similarity(puns["hom_39"])
+show_similarity(puns["hom_107"])
+show_similarity(puns["hom_128"])
+show_similarity(puns["hom_136"])
+# plt.show()
