@@ -1,8 +1,9 @@
-data_notes.xml
 __pycache__/
 .vscode/
-results/
-stories/
 *.pickle
 *.pkl
 embedding models
+notes
+disambiguate
+UFSAC-master
+results

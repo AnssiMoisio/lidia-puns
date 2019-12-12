@@ -29,9 +29,13 @@ def get_puns(subtask=2, h="homographic", truncate=None):
         for word in pun:
             puns[pun.attrib['id']][word.attrib['id']]           = {}
             puns[pun.attrib['id']][word.attrib['id']]['token']  = word.text
+            if subtask == 3:
+                if int(word.attrib['senses']) > 1:
+                    puns[pun.attrib['id']][word.attrib['id']]['ispun'] = True
+                else:
+                    puns[pun.attrib['id']][word.attrib['id']]['ispun']  = False
         t += 1
-        if t == truncate:
-            break
+        if t == truncate: break
 
     taskID = root.attrib['id']
     return puns, taskID

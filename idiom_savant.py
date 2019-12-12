@@ -12,6 +12,11 @@ from nltk import FreqDist
 from nltk.corpus import wordnet as wn, stopwords, brown
 from nltk.tokenize import RegexpTokenizer
 
+# tokeniser that removes punctuation
+tokenizer = RegexpTokenizer(r'\w+')
+
+stopWords = set(stopwords.words('english'))
+
 # sets for seeing which words are not in vocabulary
 words_not_in_wordnet = set()
 words_not_in_w2v = set()
@@ -21,12 +26,11 @@ words_not_in_w2v = set()
 model_filename = os.path.join("embedding models", "GoogleNews-vectors-negative300.bin")
 wv_model = KeyedVectors.load_word2vec_format(model_filename, binary=True)
 
+
 def create_freq_dict(n_most_common=None, filtered=False):
     """
     Word frequencies from brown corpus
     """
-    tokenizer = RegexpTokenizer(r'\w+') # tokeniser that removes punctuation
-    stopWords = set(stopwords.words('english'))
     words = brown.words()
     if filtered:
         filtered_words = [w.lower() for w in words if w.lower() not in stopWords and w not in string.punctuation and w not in "''``'--"]

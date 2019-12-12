@@ -96,7 +96,6 @@ def select_word_with_lowest_freq(pun):
     use the Brown Corpus
     Return the word ID.
     """
-
     min_freq = np.inf
     minID = ""
     for wordID, word in pun.items():
