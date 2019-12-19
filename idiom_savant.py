@@ -1,5 +1,4 @@
-import process_data
-import baseline_subtask2
+import common
 import os
 import string
 import time
@@ -37,13 +36,14 @@ def create_freq_dict(n_most_common=None, filtered=False):
         word_freq = FreqDist(w for w in filtered_words)
     else:
         word_freq = FreqDist(w for w in words)
-    if n_most_common is not None:
+        
+    if n_most_common is None:
+        return word_freq
+    else:
         most_common_words = set()
         for wordtuple in list(word_freq.most_common(n_most_common)):
             most_common_words.add(wordtuple[0])
         return most_common_words
-    else:
-        return word_freq
 
 def get_senses_of_word(word):
     """
@@ -53,7 +53,7 @@ def get_senses_of_word(word):
     synsets = wn.synsets(word)
     if len(synsets) == 0:
         words_not_in_wordnet.add(word)
-        print("{} not in WordNet".format(word))
+        # print("{} not in WordNet".format(word))
 
     return synsets
 
@@ -96,10 +96,10 @@ def similarity(w1, w2, metric=None, correction=True):
         try:
             sim = wv_model.similarity(w1, w2)
         except KeyError as err:
-            print("Word2Vec error in similarity():", err)
+            # print("Word2Vec error in similarity():", err)
             sim = 0.2 # arbitrary
             # just for adding the words in the words_not_in_w2v set
-            # word_vector(w1) 
+            # word_vector(w1)
             # word_vector(w2)
             
     # f_ws() correction function from the article
@@ -132,13 +132,13 @@ def baseline_score_homographic(puns):
     word." p. 106 Idiom Savant
     """
     for punID, pun in puns.items():
-        pun_tokens = process_data.get_pun_tokens(pun)
+        pun_tokens = common.get_pun_tokens(pun)
         for wordID, word in pun.items():
             puns[punID][wordID]['score'] = sim_token_lists([word['token']], pun_tokens)
 
     return puns
 
-def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, normalise=True):
+def gloss_score_homographic(puns, use_context_gloss=False, use_examples=False, normalise=True):
     """
     Score each word according to Idiom Savant (p. 106):
 
@@ -177,6 +177,9 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, no
     other phrases. Thus we added a frequency damping factor(fij) of 0.1 to the score for whose words
     have frequencies more than 100 in Brown Corpus (Francis and Kucera, 1979)."
     """
+
+    most_common_words = create_freq_dict(n_most_common=100, filtered=True)
+
     for punID, pun in tqdm(puns.items()): # looping ten puns takes about 30 seconds, so 2000 puns = 100 minutes 
         for wordID, word in pun.items():
             puns[punID][wordID]['score'] = 0 # deletes previous scores
@@ -184,7 +187,7 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, no
             # exclude the word itself and adjacent words as described in the article
             exc = set(( wordID, wordID[:-1] + str(int(wordID[-1]) - 1), wordID[:-1] + str(int(wordID[-1]) + 1) ))
             # get the other tokens
-            pun_tokens, pun_pos_tags = process_data.get_pun_tokens(pun, exclude=exc, return_pos_tags=True)
+            pun_tokens, pun_pos_tags = common.get_pun_tokens(pun, exclude=exc, return_pos_tags=True)
 
             # the senses from wordnet
             word_senses = get_senses_of_word(word['token'])
@@ -229,7 +232,10 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=True, no
                         puns[punID][wordID]['score'] *= 0.3
 
 def show_similarity(pun):
-    pun_tokens = process_data.get_pun_tokens(pun)
+    """
+    Visualise similarities of word pairs with a matrix.
+    """
+    pun_tokens = common.get_pun_tokens(pun)
     d = len(pun_tokens)
     matrix = np.zeros((d, d))
     for i in range(d):
@@ -266,37 +272,19 @@ def get_results(puns):
 
     return results
 
-def print_scores(pun):
-    # print(pun.values())
+
+puns, taskID = common.get_puns(truncate=10)
+common.lowercase_caps_lock_words(puns)
+common.add_pos_tags(puns)
+puns = common.only_content_words(puns)
+puns = common.remove_stopwords(puns)
+
+gloss_score_homographic(puns, use_context_gloss=True, use_examples=True, normalise=True)
+
+# print scores
+for pun in puns.values():
     print("pun:")
     for wordID, word in pun.items():
         print(wordID, word['token'], word['score'])
 
-
-puns, taskID = process_data.get_puns(truncate=None)
-# process_data.lowercase_caps_lock_words(puns)
-# process_data.add_pos_tags(puns)
-# process_data.lowercase(puns)
-# puns = process_data.only_content_words(puns)
-# puns = process_data.remove_stopwords(puns)
-print(process_data.get_pun_tokens(puns["hom_1"])))
-print(process_data.get_pun_tokens(puns["hom_2"]))
-print(process_data.get_pun_tokens(puns["hom_3"]))
-print(process_data.get_pun_tokens(puns["hom_4"]))
-print(" ".join(process_data.get_pun_tokens(puns["hom_5"])))
-print(process_data.get_pun_tokens(puns["hom_22"]))
-print(process_data.get_pun_tokens(puns["hom_39"]))
-print(" ".join(process_data.get_pun_tokens(puns["hom_107"])))
-print(process_data.get_pun_tokens(puns["hom_128"]))
-print(process_data.get_pun_tokens(puns["hom_136"]))
-show_similarity(puns["hom_1"])
-show_similarity(puns["hom_2"])
-show_similarity(puns["hom_3"])
-show_similarity(puns["hom_4"])
-show_similarity(puns["hom_5"])
-show_similarity(puns["hom_22"])
-show_similarity(puns["hom_39"])
-show_similarity(puns["hom_107"])
-show_similarity(puns["hom_128"])
-show_similarity(puns["hom_136"])
-# plt.show()
+print(words_not_in_wordnet, "\n", words_not_in_w2v)

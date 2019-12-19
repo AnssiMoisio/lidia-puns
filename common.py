@@ -4,7 +4,7 @@ import time
 import string
 from nltk import pos_tag
 from nltk.corpus import stopwords
-from nltk.util import ngrams
+import collections
 
 DATA_DIR    = os.path.join(".", "semeval2017_task7", "data", "test")
 RESULTS_DIR = os.path.join(".", "results")
@@ -23,41 +23,35 @@ def get_puns(subtask=2, h="homographic", truncate=None):
     root = ET.parse(os.path.join(DATA_DIR, filename)).getroot()
 
     puns = {}
-    t = 0
-    for pun in root:
-        puns[pun.attrib['id']] = {}
+    for t, pun in enumerate(root):
+        if t == truncate: break
+        punID = pun.attrib['id']
+        puns[punID] = collections.OrderedDict()
         for word in pun:
-            puns[pun.attrib['id']][word.attrib['id']]           = {}
-            puns[pun.attrib['id']][word.attrib['id']]['token']  = word.text
+            wordID = word.attrib['id']
+            puns[punID][wordID]           = {}
+            puns[punID][wordID]['token']  = word.text
+
+            # add the number of word e.g. "hom_345_13" -> word["word_number"]: 13 
+            _counter = 0
+            for char_ind in range(len(wordID)):
+                if wordID[char_ind] == "_":
+                    _counter += 1
+                if _counter == 2:
+                    puns[punID][wordID]['word_number'] = int(wordID[char_ind + 1:])
+                    break
+
+            # whether the word is the pun word or not
             if subtask == 3:
                 if int(word.attrib['senses']) > 1:
-                    puns[pun.attrib['id']][word.attrib['id']]['ispun'] = True
+                    puns[punID][wordID]['ispun'] = True
                 else:
-                    puns[pun.attrib['id']][word.attrib['id']]['ispun']  = False
-        t += 1
-        if t == truncate: break
+                    puns[punID][wordID]['ispun'] = False
 
     taskID = root.attrib['id']
     return puns, taskID
 
-
-def get_all_puns():
-    """
-    Create a three-fold nested dictionary to get all the puns of all subtasks.
-
-    To get a specific word in a (possible) pun from the nested dictionary:
-    all_puns["subtask2-homographic"]["hom_2250"]["hom_2250_4"]
-    """
-    all_puns = {}
-    for task in range(1,4):
-        puns, taskid = get_puns(subtask=task, h="homographic")
-        all_puns[taskid] = puns
-        puns, taskid = get_puns(subtask=task, h="heterographic")
-        all_puns[taskid] = puns
-    return all_puns
-
-
-def get_pun_tokens(pun, exclude=[], return_pos_tags=False):
+def get_pun_tokens(pun, exclude={}, return_pos_tags=False):
     """
     Returns a list of the words (tokens) from a pun dictionary.
     """
@@ -74,7 +68,6 @@ def get_pun_tokens(pun, exclude=[], return_pos_tags=False):
 
     return pun_tokens
 
-
 def write_results(results, filename="results", timestamp=True):
     """
     Write results into a text file from the results dictionary.
@@ -86,7 +79,6 @@ def write_results(results, filename="results", timestamp=True):
     with open(os.path.join(RESULTS_DIR, filename), "w") as f:
         for k in results.keys():
             f.write(str(k) + " " + str(results[k]) + "\n")
-
 
 def remove_punctuation(puns):
     """
@@ -102,7 +94,6 @@ def remove_punctuation(puns):
 
     return new_puns
 
-
 def remove_stopwords(puns):
     """
     Remove stop words from a puns dictionary.
@@ -117,7 +108,6 @@ def remove_stopwords(puns):
 
     return new_puns
 
-
 def lowercase_caps_lock_words(puns):
     """
     There are some words WRITTEN WITH CAPS LOCK so make those lowercase.
@@ -129,7 +119,6 @@ def lowercase_caps_lock_words(puns):
             if word['token'].isupper() and len(word['token']) > 1:
                 word['token'] = word['token'].lower()
 
-
 def lowercase(puns):
     """
     Turn all words except proper nouns into lowercase.
@@ -138,7 +127,6 @@ def lowercase(puns):
         for wordID, word in pun.items():
             if word['pos'] not in {'NNP', 'NNPS'}:
                 word['token'] = word['token'].lower()
-
 
 def add_pos_tags(puns):
     """
@@ -190,7 +178,6 @@ def add_pos_tags(puns):
         for wordID, posItem in zip(pun.keys(), postags):
             puns[punID][wordID]['pos'] = posItem[1]
 
-
 def only_content_words(puns):
     """
     Keep only nouns, verbs, adverbs and adjectives in the puns dictionary.
@@ -205,33 +192,3 @@ def only_content_words(puns):
                 new_puns[punID][wordID] = word
 
     return new_puns
-
-
-def add_word_numbers(puns):
-    """
-    Add the number from wordID as a key-value pair in the word dictionary.
-    E.g. "hom_345_13" -> word["word_number"]: 13 
-    """
-    for punID, pun in puns.items():
-        for wordID, word in pun.items():
-            _counter = 0
-            for char_ind in range(len(wordID)):
-                if wordID[char_ind] == "_":
-                    _counter += 1
-                if _counter == 2:
-                    word['word_number'] = int(wordID[char_ind + 1:])
-                    break
-
-
-def get_trigrams(puns):
-    """
-    Separate the context into trigrams
-    Return a list of tuples for each pun: [(word1, word2, word3), (word2, word3, word4)]
-    """
-    trigrams = {}
-    for punID, pun in puns.items():
-        tokenized_sent = get_pun_tokens(pun)
-        trigrams[punID] = list(ngrams(tokenized_sent, 3))
-
-    return trigrams
-

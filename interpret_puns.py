@@ -1,4 +1,4 @@
-import process_data
+import common
 import string
 import time
 from nltk.corpus import wordnet as wn, stopwords, brown
@@ -104,13 +104,12 @@ def parse_wsd_file(puns, filename="wsd_output.txt"):
                         print(err, "somethisng is wrong here")
 
 
-puns, taskID = process_data.get_puns(subtask=3, truncate=None)
-process_data.lowercase_caps_lock_words(puns)
-process_data.add_pos_tags(puns)
-process_data.lowercase(puns)
-puns = process_data.only_content_words(puns)
-puns = process_data.remove_stopwords(puns)
-process_data.add_word_numbers(puns)
+puns, taskID = common.get_puns(subtask=3, truncate=None)
+common.lowercase_caps_lock_words(puns)
+common.add_pos_tags(puns)
+common.lowercase(puns)
+puns = common.only_content_words(puns)
+puns = common.remove_stopwords(puns)
 
 
 # create_word_pairs_file(puns, filename="wsd_input")
@@ -149,5 +148,5 @@ def create_results(puns):
     return results
 
 res = create_results(puns)
-process_data.write_results(res, filename="interpret-only-content", timestamp=False)
+common.write_results(res, filename=taskID, timestamp=True)
 

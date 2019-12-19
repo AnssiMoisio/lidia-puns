@@ -3,7 +3,7 @@ import nltk
 import string
 from nltk.tokenize import TweetTokenizer
 from nltk.util import ngrams
-import process_data
+import common
 
 stopWords = set(nltk.corpus.stopwords.words('english'))
 
@@ -104,11 +104,11 @@ def get_sound_pairs():
     print(sound_dict)
     return sound_dict
 
-puns, taskID = process_data.get_puns()
+puns, taskID = common.get_puns()
 
 tokens = []
 for punID, pun in puns.items():
-    tokens.append(process_data.get_pun_tokens(pun))
+    tokens.append(common.get_pun_tokens(pun))
 
 tokens = [j for i in tokens for j in i]
 

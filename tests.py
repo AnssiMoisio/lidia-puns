@@ -1,47 +1,40 @@
 import unittest
-import process_data
+import common
 # import idiom_savant
 
 class TestDataProcessing(unittest.TestCase):
     # def test_get_puns(self):
-    #     puns, taskID = process_data.get_puns()
+    #     puns, taskID = common.get_puns()
     #     self.assertEqual(puns["hom_2250"], {'hom_2250_1': 'A', 'hom_2250_2': 'student', 'hom_2250_3': 'limped', 'hom_2250_4': 'into', 'hom_2250_5': 'class', 'hom_2250_6': 'with', 'hom_2250_7': 'a', 'hom_2250_8': 'lame', 'hom_2250_9': 'excuse', 'hom_2250_10': '.'} )
 
     # def test_remove_punctuation(self):
-    #     puns, taskID = process_data.get_puns()
-    #     p = process_data.remove_punctuation(puns)
+    #     puns, taskID = common.get_puns()
+    #     p = common.remove_punctuation(puns)
     #     self.assertEqual(p["hom_2250"], {'hom_2250_1': 'A', 'hom_2250_2': 'student', 'hom_2250_3': 'limped', 'hom_2250_4': 'into', 'hom_2250_5': 'class', 'hom_2250_6': 'with', 'hom_2250_7': 'a', 'hom_2250_8': 'lame', 'hom_2250_9': 'excuse'})
 
     # def test_remove_stopwords(self):
-    #     puns, taskID = process_data.get_puns()
-    #     p = process_data.remove_stopwords(puns)
+    #     puns, taskID = common.get_puns()
+    #     p = common.remove_stopwords(puns)
     #     self.assertEqual(p["hom_2250"], {'hom_2250_1': 'A', 'hom_2250_2': 'student', 'hom_2250_3': 'limped', 'hom_2250_5': 'class','hom_2250_8': 'lame', 'hom_2250_9': 'excuse', 'hom_2250_10': '.'} )
 
     # def test_lowercase(self):
-    #     puns, taskID = process_data.get_puns()
-    #     puns = process_data.truncate_puns(puns, keep=500)
-    #     puns = process_data.add_pos_tags(puns)
-    #     puns = process_data.remove_stopwords(puns)
-    #     puns = process_data.only_content_words(puns)
+    #     puns, taskID = common.get_puns()
+    #     puns = common.truncate_puns(puns, keep=500)
+    #     puns = common.add_pos_tags(puns)
+    #     puns = common.remove_stopwords(puns)
+    #     puns = common.only_content_words(puns)
     #     print(puns["hom_556"])
     #     print(puns["hom_631"])
-    #     puns = process_data.lowercase(puns)
+    #     puns = common.lowercase(puns)
     #     print(puns["hom_556"])
     #     print(puns["hom_631"])
 
     # def test_get_pun_tokens(self):
-    #     puns, taskID = process_data.get_puns()
-    #     puns = process_data.add_pos_tags(puns)
+    #     puns, taskID = common.get_puns()
+    #     puns = common.add_pos_tags(puns)
     #     for punID, pun in puns.items():
     #         break
-    #     print(process_data.get_pun_tokens(pun, exclude=[], exclude_stopwords=True, return_pos_tags=True))
-
-    def test_add_word_numbers(self):
-        puns, taskID = process_data.get_puns()
-        puns = process_data.truncate_puns(puns, keep=5)
-        process_data.add_word_numbers(puns)
-        print(puns)
-
+    #     print(common.get_pun_tokens(pun, exclude=[], exclude_stopwords=True, return_pos_tags=True))
 
 # class TestIdiomSavant(unittest.TestCase):
     # def test_get_gloss(self):

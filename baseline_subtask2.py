@@ -1,4 +1,4 @@
-import process_data
+import common
 import Uwaterloo
 import string
 import numpy as np
@@ -22,19 +22,13 @@ def get_last_word(pun):
     """
     return the wordID (e.g. "hom_2_4") with the largest word number from this pun
     """
-    lastID = None
-    largest_word_number = 0
-    for wordID, word in pun.items():
-        if word['word_number'] > largest_word_number:
-            largest_word_number = word['word_number']
-            lastID = wordID
-
-    if lastID is not None:
-        return lastID
-    else:
+    if len(pun.items()) < 1:
         print("get last word error")
-
-
+        return None
+    for wordID, word in pun.items():
+        pass
+    return wordID
+        
 def select_last_word(puns):
     """
     Select the last word of the pun in the pun location task.
@@ -111,13 +105,12 @@ def select_word_with_lowest_freq(pun):
     return minID
 
 
-puns, taskID = process_data.get_puns(h="heterographic", truncate=None)
-process_data.lowercase_caps_lock_words(puns)
-process_data.add_pos_tags(puns)
-process_data.lowercase(puns)
-puns = process_data.only_content_words(puns)
-puns = process_data.remove_stopwords(puns)
-process_data.add_word_numbers(puns)
+puns, taskID = common.get_puns(h="heterographic", truncate=None)
+common.lowercase_caps_lock_words(puns)
+common.add_pos_tags(puns)
+common.lowercase(puns)
+puns = common.only_content_words(puns)
+puns = common.remove_stopwords(puns)
 
 results = {}
 for punID, pun in puns.items():
@@ -126,4 +119,4 @@ for punID, pun in puns.items():
     #     wordID = select_least_common_of_last_n_words(pun, 2)
     results[punID] = wordID
 
-process_data.write_results(results, filename=taskID + "-test", timestamp=False)
+common.write_results(results, filename=taskID + "-test", timestamp=False)

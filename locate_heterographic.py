@@ -1,6 +1,7 @@
-import process_data
-import pickle
-
+import common
+from nltk.util import ngrams
+import urllib
+import requests
 
 def create_homophone_dict():
     """
@@ -22,6 +23,22 @@ def create_homophone_dict():
 
     return homophone_dict
 
+def get_idiom_freq(idiom):
+    """
+    Retrieve the frequency of an idiom from Google n-gram database.
+    details: https://phrasefinder.io/api
+    """
+    encoded_query = urllib.parse.quote(idiom)
+    params = {'corpus': 'eng-us', 'query': encoded_query}
+    params = '&'.join('{}={}'.format(name, value) for name, value in params.items())
+    response = requests.get('https://api.phrasefinder.io/search?' + params)
+    assert response.status_code == 200
+
+    if response.json()['phrases']:
+        return response.json()['phrases'][0]['mc']
+    else:
+        return 0
+
 def select_tom_swifty(puns, results):
     """
     Use some heuristics to identify and select the pun word for Tom Swifty puns.
@@ -34,3 +51,15 @@ def select_tom_swifty(puns, results):
                 if word[1] == 'RB' and word[0][-2:] == 'ly':
                     print(pun.values(), word[0])
                     results[punID] = wordID
+
+def get_trigrams(puns):
+    """
+    Separate the context into trigrams
+    Return a list of tuples for each pun: [(word1, word2, word3), (word2, word3, word4)]
+    """
+    trigrams = {}
+    for punID, pun in puns.items():
+        tokenized_sent = common.get_pun_tokens(pun)
+        trigrams[punID] = list(ngrams(tokenized_sent, 3))
+
+    return trigrams
