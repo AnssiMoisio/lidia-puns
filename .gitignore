@@ -1,9 +1,21 @@
-__pycache__/
-.vscode/
+__pycache__
+.vscode
 *.pickle
 *.pkl
+results
 embedding models
 notes
-disambiguate
 UFSAC-master
-results
+
+# a bit of a pyramid here to include WSD files
+disambiguate/*
+!disambiguate/java
+!disambiguate/decode_puns.sh
+disambiguate/java/*
+!disambiguate/java/src
+disambiguate/java/src/*
+!disambiguate/java/src/main
+disambiguate/java/src/main/*
+!disambiguate/java/src/main/java
+disambiguate/java/src/main/java/*
+!disambiguate/java/src/main/java/PunDecode.java
