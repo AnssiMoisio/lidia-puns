@@ -28,7 +28,7 @@ wv_model = KeyedVectors.load_word2vec_format(model_filename, binary=True)
 
 def create_freq_dict(n_most_common=None, filtered=False):
     """
-    Word frequencies from brown corpus
+    Word frequencies from the brown corpus
     """
     words = brown.words()
     if filtered:
@@ -82,7 +82,7 @@ def word_vector(word):
         words_not_in_w2v.add(word)
         # print("Word2Vec error in word_vector():", err)
 
-def similarity(w1, w2, metric=None, correction=True):
+def similarity(w1, w2, metric=None, correction=False):
     """
     Return the similarity of two words.
     """
@@ -92,7 +92,7 @@ def similarity(w1, w2, metric=None, correction=True):
         vector2 = word_vector(w2)
         sim = np.inner(vector1, vector2) / (norm(vector1)*norm(vector2))
     
-    else: # Gensim's built-in similarity metric, I don't know how it is computed
+    else: # Gensim's built-in cosine similarity function
         try:
             sim = wv_model.similarity(w1, w2)
         except KeyError as err:
@@ -128,7 +128,7 @@ def baseline_score_homographic(puns):
 
     "In the baseline model we design, the pun potential score of a word wi
     is computed as the sum of cosine similarities between the word wi and every
-    word in context wj ∈ ci. The word with highest score is returned as the punning
+    word in context wj in ci. The word with highest score is returned as the punning
     word." p. 106 Idiom Savant
     """
     for punID, pun in puns.items():
@@ -151,7 +151,7 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=False, n
     combination of gi and ci, and sum of similarity scores is the score for wi.
     
     In the second strategy, similarity score were calculated between gi and gj,
-    the gloss of wj ∈ ci.
+    the gloss of wj in ci.
     
     [...] In puns, punning words and grounding words in context are often not adjacent.
     Thus the system does not consider the adjacent words of the candidate word.
@@ -180,14 +180,15 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=False, n
 
     most_common_words = create_freq_dict(n_most_common=100, filtered=True)
 
+    print("Calculating scores for {} puns...".format(len(puns.values())))
     for punID, pun in tqdm(puns.items()): # looping ten puns takes about 30 seconds, so 2000 puns = 100 minutes 
         for wordID, word in pun.items():
             puns[punID][wordID]['score'] = 0 # deletes previous scores
 
             # exclude the word itself and adjacent words as described in the article
-            exc = set(( wordID, wordID[:-1] + str(int(wordID[-1]) - 1), wordID[:-1] + str(int(wordID[-1]) + 1) ))
+            # exc = set(( wordID, wordID[:-1] + str(int(wordID[-1]) - 1), wordID[:-1] + str(int(wordID[-1]) + 1) ))
             # get the other tokens
-            pun_tokens, pun_pos_tags = common.get_pun_tokens(pun, exclude=exc, return_pos_tags=True)
+            pun_tokens, pun_pos_tags = common.get_pun_tokens(pun, exclude=[wordID]], return_pos_tags=True)
 
             # the senses from wordnet
             word_senses = get_senses_of_word(word['token'])
@@ -218,8 +219,8 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=False, n
                     # POS damping
                     # this is pretty stupid in my opinion, can be skipped
                     # consider only two first chars e.g. VB == VBD, because "VBD"[:2] == "VB"
-                    # if context_word_pos[:2] == word['pos'][:2]: 
-                    #     puns[punID][wordID]['score'] *= 0.2
+                    if context_word_pos[:2] == word['pos'][:2]: 
+                        puns[punID][wordID]['score'] *= 0.2
 
                     # Frequency damping
                     word_lemma = wn.morphy(word['token']) if wn.morphy(word['token']) is not None else word['token']
@@ -229,7 +230,7 @@ def gloss_score_homographic(puns, use_context_gloss=False, use_examples=False, n
                         puns[punID][wordID]['score'] *= 0.1
                     elif context_word_lemma in most_common_words:
                         # print('context word "{}" is in most_common_words'.format(context_word))
-                        puns[punID][wordID]['score'] *= 0.3
+                        puns[punID][wordID]['score'] *= 0.1
 
 def show_similarity(pun):
     """
@@ -273,7 +274,7 @@ def get_results(puns):
     return results
 
 
-puns, taskID = common.get_puns(truncate=10)
+puns, taskID = common.get_puns(truncate=30)
 common.lowercase_caps_lock_words(puns)
 common.add_pos_tags(puns)
 puns = common.only_content_words(puns)

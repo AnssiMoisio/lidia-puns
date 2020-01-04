@@ -2,10 +2,10 @@ __pycache__
 .vscode
 *.pickle
 *.pkl
-results
 embedding models
 notes
 UFSAC-master
+wsd*.txt
 
 # a bit of a pyramid here to include WSD files
 disambiguate/*
